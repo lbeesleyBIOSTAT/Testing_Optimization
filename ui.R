@@ -36,13 +36,13 @@ shiny::fluidPage(
         shiny::tabPanel('Forecasting',
                         shiny::fluidRow(
                           shiny::column(12,
-                                        shiny::sliderInput("w", "Shrinkage weight (w):", value= 1, min = 0, max = 1, step = 0.1),
-                                        shiny::sliderInput("falseneg", "False negative probability (beta):", value= 0.3, min = 0.01, max = 0.4, step = 0.01),
-                                        shiny::sliderInput("falsepos", "False positive probability (alpha):", value= 0.01, min = 0.01, max = 0.05, step = 0.01),
-                                        shiny::sliderInput("targetpos", "Target positivity rate (w<1 only):", value= 0.02, min =0.01, max = 0.15, step = 0.01),
-                                        shiny::sliderInput("ta", "Proportion of asymptomatic cases (ta):", value= 0.75, min =0.55, max = 0.95, step = 0.01),
-                                        shiny::sliderInput("mult", "Case underreporting factor:", value= 5, min = 1, max = 20, step = 1),
-                                        shiny::sliderInput("Total", "Number of Available Tests:", value= 50000, min =25000, max = 150000, step = 25000)
+                                        shiny::sliderInput("w2", "Shrinkage weight (w):", value= 1, min = 0, max = 1, step = 0.1),
+                                        shiny::sliderInput("falseneg2", "False negative probability (beta):", value= 0.3, min = 0.01, max = 0.4, step = 0.01),
+                                        shiny::sliderInput("falsepos2", "False positive probability (alpha):", value= 0.01, min = 0.01, max = 0.05, step = 0.01),
+                                        shiny::sliderInput("targetpos2", "Target positivity rate (w<1 only):", value= 0.02, min =0.01, max = 0.15, step = 0.01),
+                                        shiny::sliderInput("ta2", "Proportion of asymptomatic cases (ta):", value= 0.75, min =0.55, max = 0.95, step = 0.01),
+                                        shiny::sliderInput("num2", "Peak number of cases in population:", value= 200000, min = 10000, max = 500000, step = 10000),
+                                        shiny::sliderInput("Total2", "Number of Available Tests (Weekly):", value= 50000, min =25000, max = 200000, step = 5000)
                           )#end column
                         ), #end fluidrow,
             value = 'Forecasting'

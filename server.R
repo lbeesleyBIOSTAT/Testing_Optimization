@@ -39,6 +39,7 @@ server = function(input, output ) {
   
   GetPlots <- function(input){
     N = 8175133 
+    if(input$TABCHOSEN == 'Historical'){
     w = as.numeric(input$w) #1
     ta = as.numeric(input$ta)
     ts = (1-ta)/5
@@ -46,7 +47,17 @@ server = function(input, output ) {
     mult= as.numeric(input$mult) #5 
     falseneg = as.numeric(input$falseneg)
     falsepos = as.numeric(input$falsepos)
-
+    }else{
+      w = as.numeric(input$w2) #1
+      ta = as.numeric(input$ta2)
+      ts = (1-ta)/5
+      targetpos = as.numeric(input$targetpos2)
+      mult= as.numeric(input$num2)/38537 #5 
+      falseneg = as.numeric(input$falseneg2)
+      falsepos = as.numeric(input$falsepos2)      
+    }
+    
+    
     #data.frame(ta = ta, tm = 1-ta-ts, ts = ts)
     data = as.data.frame(matrix(NA, nrow = G, ncol = 3))
     colnames(data) = c("Generation","Tests","ReportedCases")
@@ -88,7 +99,7 @@ server = function(input, output ) {
                                     D = data$ReportedCases[i]*mult,
                                     ta = ta,
                                     ts = ts,
-                                    Total=ifelse(input$TABCHOSEN !='Historical', input$Total, data$Tests[i]),
+                                    Total=ifelse(input$TABCHOSEN !='Historical', input$Total2, data$Tests[i]),
                                     beta=falseneg,
                                     alpha=falsepos,
                                     c_pos=targetpos,
@@ -118,10 +129,7 @@ server = function(input, output ) {
     break.ref = gsub('/','-',break.ref)
     break.ref = gsub('-2020','',break.ref)
     
-    T_rptCase_simuCase = data.frame('date'=break.ref,
-                                    'reported cases' = data$ReportedCases,
-                                    'estimated positive tests' = result$positive.tests)
-    
+
     
     
 
@@ -130,6 +138,12 @@ server = function(input, output ) {
     ####################
 
 
+    if(input$TABCHOSEN =='Historical'){
+      T_rptCase_simuCase = data.frame('date'=break.ref,
+                                      'reported cases' = data$ReportedCases,
+                                      'estimated positive tests' = result$positive.tests)
+      
+      
     ### plot 1.1 ###
     Test.result.symptom = data.frame('date' = break.ref,
                                      'asymptomatics' = Test.result[,2],
@@ -200,8 +214,7 @@ server = function(input, output ) {
     result_w0 = result
     pr= data.frame('date' = break.ref,
                    'reported' = round(data$ReportedCases/data$Tests,3),
-                   'findMoreCases' = round(result_w1$positive.rate,3),
-                   'controlPR' = round(result_w0$positive.rate,3))
+                   'findMoreCases' = round(result_w1$positive.rate,3))
     p4=ggplot(data=pr,aes(x=date,group=1))+
       geom_line(aes(y=reported,color='reported positive rate'),size=1.5)+
       geom_point(aes(y=reported))+
@@ -219,7 +232,101 @@ server = function(input, output ) {
       theme(title=element_text(size=10,face="bold"))
     
     A1 = gridExtra::grid.arrange(p1,p2,p3,p4,nrow=2)
-    
+    }else{
+      T_rptCase_simuCase = data.frame('date'=break.ref,
+                                      'reported cases' = data$ReportedCases*mult,
+                                      'estimated positive tests' = result$positive.tests)
+      
+      
+      ### plot 1.1 ###
+      Test.result.symptom = data.frame('date' = break.ref,
+                                       'asymptomatics' = Test.result[,2],
+                                       'mild' = Test.result[,3],
+                                       'severe' = Test.result[,4])
+      Test.symptom.long = reshape2::melt(Test.result.symptom,id.vars = "date")
+      p1 = ggplot(data=Test.symptom.long,aes(x=date,y=value,fill=variable))+
+        geom_bar(stat="identity",position = 'stack')+
+        scale_y_continuous()+
+        scale_x_discrete(breaks=break.ref, labels = paste0('Week', c(1:length(break.ref))))+
+        ggtitle("Tests allocation to each symptomatic group in New York City")+
+        ylab("Number of tests")+
+        xlab(" ")+
+        guides(fill=guide_legend(title=""))+
+        scale_fill_manual(values=c('#999999','#E69F00',"#0099CC"))+
+        ggthemes::theme_economist()+
+        theme(axis.text.x = element_text(angle = 60,vjust=0.5))+
+        theme(title=element_text(size=10,face="bold"))
+      
+      ### plot 1.2 ###
+      Test.result.age = data.frame('date' = break.ref,
+                                   'age1' = Test.result[,5],
+                                   'age2' = Test.result[,6],
+                                   'age3' = Test.result[,7],
+                                   'age4' = Test.result[,8])
+      Test.age.long = reshape2::melt(Test.result.age,id.vars = "date")
+      
+      p2 = ggplot(data=Test.age.long,aes(x=date,y=value,fill=variable))+
+        geom_bar(stat="identity",position = 'stack')+
+        scale_y_continuous()+
+        scale_x_discrete(breaks=break.ref, labels = paste0('Week', c(1:length(break.ref))))+
+        ggtitle("Tests allocation to each age group in New York City")+
+        ylab("Number of tests")+
+        xlab("")+
+        guides(fill=guide_legend(title=""))+
+        scale_fill_manual(values=c('#000066','#00CC66','#FFFF00','#FF3300'),
+                          labels = c("age 0-17","age 18-49","age 50-64","age 65+"))+
+        ggthemes::theme_economist()+
+        theme(axis.text.x = element_text(angle = 60,vjust=0.5))+
+        theme(title=element_text(size=10,face="bold"))
+
+      ### plot 1.3 ###
+      
+      p3 = ggplot(data=T_rptCase_simuCase,aes(x=date,y=reported.cases,group=1))+
+        geom_bar(aes(y=reported.cases,fill='cases in population'),stat="identity",position = 'identity',alpha=1)+
+        scale_y_continuous()+
+        scale_x_discrete(breaks=break.ref)+
+        geom_line(aes(y=estimated.positive.tests,color='optimal strategy'),size=1.5)+
+        geom_point(aes(y=estimated.positive.tests))+
+        scale_color_manual(labels=c("optimal strategy"),
+                           values=c("optimal strategy"="#0066CC"))+
+        scale_fill_manual(values = "red")+
+        theme(legend.key=element_blank(),
+              legend.title=element_blank(),
+              legend.box="horizontal")+
+        xlab("") +
+        ylab("")+
+        ggtitle("True number of cases and estimated optimal positive cases")+
+        ggthemes::theme_economist()+
+        theme(legend.title = element_blank(),
+              axis.text.x = element_text(angle = 60,vjust=0.5))+
+        theme(title=element_text(size=10,face="bold"))
+      
+      ### plot 1.4 ###
+      
+      result_w1 = result
+      result_w0 = result
+      pr= data.frame('date' = break.ref,
+                     'reported' = round(data$ReportedCases*mult/N,3),
+                     'findMoreCases' = round(result_w1$positive.rate,3))
+      p4=ggplot(data=pr,aes(x=date,group=1))+
+        geom_line(aes(y=reported,color='population true positive rate'),size=1.5)+
+        geom_point(aes(y=reported))+
+        geom_line(aes(y=findMoreCases,color='optimalStrategy'),size=1.5)+
+        geom_point(aes(y=findMoreCases))+
+        scale_y_continuous()+
+        scale_x_discrete(breaks=break.ref, labels = paste0('Week', c(1:length(break.ref))))+
+        ggtitle("Positive rate comparison in New York City")+
+        ylab("Positive rate")+
+        xlab("")+
+        scale_color_manual(values=c('population true positive rate'= '#FF3333', 'optimalStrategy'='#00CC66'))+
+        guides(color=guide_legend(title=""))+
+        ggthemes::theme_economist()+
+        theme(axis.text.x = element_text(angle = 60,vjust=0.5))+
+        theme(title=element_text(size=10,face="bold"))  
+      
+      A1 = gridExtra::grid.arrange(p1,p2,p3,p4,nrow=2)
+      
+    }
     return(A1)
   }
 
