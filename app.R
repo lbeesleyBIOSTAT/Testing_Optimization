@@ -13,7 +13,7 @@ ui<- shiny::fluidPage(
         shiny::column(9,
                       print("Add description here\n") ,
                       shiny::br(),
-                      a("\n Blahblah add more information link here. ",target="_blank",href="RShinyDoc.pdf")
+                      shiny::a("\n Blahblah add more information link here. ",target="_blank",href="RShinyDoc.pdf")
         )
       ),
       shiny::br(),
@@ -321,7 +321,7 @@ server = function(input, output ) {
       p1 = ggplot(data=Test.symptom.long,aes(x=date,y=value,fill=variable))+
         geom_bar(stat="identity",position = 'stack')+
         scale_y_continuous()+
-        scale_x_discrete(breaks=break.ref, labels = paste0('Week', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=break.ref, labels = paste0('Week ', c(1:length(break.ref))))+
         ggtitle("Tests allocation to each symptomatic group in New York City")+
         ylab("Number of tests")+
         xlab(" ")+
@@ -342,7 +342,7 @@ server = function(input, output ) {
       p2 = ggplot(data=Test.age.long,aes(x=date,y=value,fill=variable))+
         geom_bar(stat="identity",position = 'stack')+
         scale_y_continuous()+
-        scale_x_discrete(breaks=break.ref, labels = paste0('Week', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=break.ref, labels = paste0('Week ', c(1:length(break.ref))))+
         ggtitle("Tests allocation to each age group in New York City")+
         ylab("Number of tests")+
         xlab("")+
@@ -358,7 +358,7 @@ server = function(input, output ) {
       p3 = ggplot(data=T_rptCase_simuCase,aes(x=date,y=reported.cases,group=1))+
         geom_bar(aes(y=reported.cases,fill='cases in population'),stat="identity",position = 'identity',alpha=1)+
         scale_y_continuous()+
-        scale_x_discrete(breaks=break.ref)+
+        scale_x_discrete(breaks=break.ref, labels = paste0('Week ', c(1:length(break.ref))))+
         geom_line(aes(y=estimated.positive.tests,color='optimal strategy'),size=1.5)+
         geom_point(aes(y=estimated.positive.tests))+
         scale_color_manual(labels=c("optimal strategy"),
@@ -388,7 +388,7 @@ server = function(input, output ) {
         geom_line(aes(y=findMoreCases,color='optimalStrategy'),size=1.5)+
         geom_point(aes(y=findMoreCases))+
         scale_y_continuous()+
-        scale_x_discrete(breaks=break.ref, labels = paste0('Week', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=break.ref, labels = paste0('Week ', c(1:length(break.ref))))+
         ggtitle("Positive rate comparison in New York City")+
         ylab("Positive rate")+
         xlab("")+
