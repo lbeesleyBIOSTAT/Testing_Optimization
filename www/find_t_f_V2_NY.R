@@ -44,7 +44,7 @@ find_t_f = function(ta,ts){
   fs_age4 = 7.90697E-05
   
   fm_age1 = 2.82E-04
-  fm_age2 = 2.82E-04
+  fm_age2 = 1.29E-04
   fm_age3 = 1.18E-04
   fm_age4 = 1.02E-04
   
