@@ -251,7 +251,7 @@ server = function(input, output, session ) {
       scale_x_discrete(breaks=break.ref)+
       ggtitle("Tests allocated to each symptom group in New York City")+
       ylab("Number of tests")+
-      xlab("Date (in 2020)")+
+      xlab("Date")+
       guides(fill=guide_legend(title=""))+
       #scale_fill_manual(values=c('#999999','#E69F00',"#0099CC"))+
       scale_fill_manual(values=c('#9E0142','#F46D43',"#FEE08B"),
@@ -280,7 +280,7 @@ server = function(input, output, session ) {
       scale_x_discrete(breaks=break.ref)+
       ggtitle("Tests allocated to each age group in New York City")+
       ylab("Number of tests")+
-      xlab("Date (in 2020)")+
+      xlab("Date")+
       guides(fill=guide_legend(title=""))+
       scale_fill_manual(values=c('#ABDDA4','#66C2A5','#3288BD','#5E4FA2'),
                         labels = c("age 0-17","age 18-49","age 50-64","age 65+"))+
@@ -309,7 +309,7 @@ server = function(input, output, session ) {
       theme(legend.key=element_blank(),
             legend.title=element_blank(),
             legend.box="horizontal")+
-      xlab("Date (in 2020)") +
+      xlab("Date") +
       ylab("Positive Cases")+
       guides(color=guide_legend(title=""), fill = guide_legend(title=""))+
       ggtitle("Number of positive cases with optimal test allocation in New York City")+
@@ -334,7 +334,7 @@ server = function(input, output, session ) {
       scale_fill_manual(values = "azure3")+
       ggtitle("Test positive rate with optimal test allocation in New York City")+
       ylab("Positive rate")+
-      xlab("Date (in 2020)")+
+      xlab("Date")+
       guides(color=guide_legend(title=""), fill = guide_legend(title=""))+
       theme(axis.text.x = element_text(angle = 60,hjust=1, vjust = 1),legend.position="top",
             legend.text=element_text(size=14), text = element_text(size=14))+
