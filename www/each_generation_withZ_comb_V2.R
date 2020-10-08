@@ -107,13 +107,13 @@ each_generation_withZ = function(N,D,ta,ts,Total,beta,alpha,c_pos,w){
   
   optimal = optiSolve::solvecop(mycop, 
                      solver="default", 
-                     quiet=FALSE,
+                     quiet=TRUE,
                      X=X.init)
   optiSolve::validate(mycop,optimal)
   
   
   # selection probability
-  prob = as.data.frame(c(1,1,1,1,round(optimal$x,3)))
+  prob = as.data.frame(c(1,1,1,1,optimal$x))
   rownames(prob) = c("selectProb.s.age1",
                      "selectProb.s.age2",
                      "selectProb.s.age3",
@@ -135,24 +135,24 @@ each_generation_withZ = function(N,D,ta,ts,Total,beta,alpha,c_pos,w){
   
   # marginal selection probability
   ## severe group
-  selectProb.s = round(sum(tests[1:4])/(Ns.age1+Ns.age2+Ns.age3+Ns.age4),3)
+  selectProb.s = sum(tests[1:4])/(Ns.age1+Ns.age2+Ns.age3+Ns.age4)
   ## mild group 
-  selectProb.m = round(sum(tests[5:8])/(Nm.age1+Nm.age2+Nm.age3+Nm.age4),3)
+  selectProb.m = sum(tests[5:8])/(Nm.age1+Nm.age2+Nm.age3+Nm.age4)
   ## asymptomatics
-  selectProb.a = round(sum(tests[9:12])/(Na.age1+Na.age2+Na.age3+Na.age4),3)
+  selectProb.a = sum(tests[9:12])/(Na.age1+Na.age2+Na.age3+Na.age4)
   ## age1
-  selectProb.age1 = round(sum(tests[1]+tests[5]+tests[9])/(Ns.age1+Nm.age1+Na.age1),3)
+  selectProb.age1 = sum(tests[1]+tests[5]+tests[9])/(Ns.age1+Nm.age1+Na.age1)
   ## age2
-  selectProb.age2 = round(sum(tests[2]+tests[6]+tests[10])/(Ns.age2+Nm.age2+Na.age2),3)
+  selectProb.age2 = sum(tests[2]+tests[6]+tests[10])/(Ns.age2+Nm.age2+Na.age2)
   ## age3
-  selectProb.age3 = round(sum(tests[3]+tests[7]+tests[11])/(Ns.age3+Nm.age3+Na.age3),3)
+  selectProb.age3 = sum(tests[3]+tests[7]+tests[11])/(Ns.age3+Nm.age3+Na.age3)
   ## age4
-  selectProb.age4 = round(sum(tests[4]+tests[8]+tests[12])/(Ns.age4+Nm.age4+Na.age4),3)
+  selectProb.age4 = sum(tests[4]+tests[8]+tests[12])/(Ns.age4+Nm.age4+Na.age4)
   
   
   
   return(list(ta=ta,
-              Total = round(sum(tests),0),
+              Total = sum(tests),
               P.hat = P.hat,
               prob = prob,
               asignedTests=tests,
