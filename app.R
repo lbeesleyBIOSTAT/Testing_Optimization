@@ -92,7 +92,6 @@ library(ggplot2)
 library(plotly)
 library(dplyr)
 library(shiny)
-library(purrr)
 
 
 
