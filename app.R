@@ -17,7 +17,7 @@ ui<- shiny::fluidPage(
         shiny::column(1
         ),
         shiny::column(9,
-                      print("This application calculates optimal SARS-CoV-2 viral test allocation by age and symptoms severity given various input parameters. Users can explore how this optimal strategy differs from historical testing in New York City and or explore test allocation for a hypothetical infection wave in a population similar to New York.  \n")
+                      print("This application calculates optimal SARS-CoV-2 viral test allocation by age and symptom severity given various input parameters. Users can explore how this optimal strategy differs from historical testing in New York City and explore test allocation for a hypothetical infection wave in a population similar to New York.  \n")
         ),
       shiny::hr(),
       shiny::tabsetPanel(
