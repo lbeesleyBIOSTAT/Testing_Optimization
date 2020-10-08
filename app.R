@@ -2,7 +2,7 @@
 
 STARTING_WEIGHTS = matrix(c(0,1,0.3,0),nrow=1,ncol = 4)
 rownames(STARTING_WEIGHTS) = 'w'
-colnames(STARTING_WEIGHTS) = c('Weeks 1-2', 'Weeks 3-8', 'Weeks 9-13', 'Weeks 14-31')
+colnames(STARTING_WEIGHTS) = c('Weeks 1-2', 'Weeks 3-8', 'Weeks 9-13', 'Weeks 14+')
 
 
 ui<- shiny::fluidPage(
@@ -50,9 +50,9 @@ ui<- shiny::fluidPage(
                                       shiny::sliderInput("num2", "Peak number of cases in population:", value= 200000, min = 10000, max = 500000, step = 10000)
                         ),
                         shiny::fluidRow(
-                          shiny::column(12,
-                                      shinyMatrix::matrixInput("weights",label = "Enter objective function w for each time interval (0-1):",
-                                                               rows=list(names = TRUE,editableNames = FALSE), cols = list(names = TRUE,editableNames = FALSE),
+                          shiny::column(10,
+                                      shinyMatrix::matrixInput("weights",label = "Enter objective function w for each time interval [0-1]:",
+                                                               rows=list(names = FALSE,editableNames = FALSE), cols = list(names = TRUE,editableNames = FALSE),
                                                                value = STARTING_WEIGHTS, class = "numeric"))),
                         value = 'Forecasting'
         ),#end tabPanel
@@ -133,7 +133,7 @@ server = function(input, output, session ) {
     options(scipen=999)
     N = 8175133 
     if(input$TABCHOSEN == 'Historical'){
-    weights = rep(as.numeric(input$w),31) #1
+    weights = rep(as.numeric(input$w),G) #1
     ta = as.numeric(input$ta)
     ts = (1-ta)/5
     targetpos = as.numeric(input$targetpos)
@@ -149,7 +149,7 @@ server = function(input, output, session ) {
       falseneg = as.numeric(input$falseneg2)
       falsepos = as.numeric(input$falsepos2) 
       weights_short = as.numeric(as.vector(input$weights))
-      weights = c(rep(weights_short[1],2), rep(weights_short[2],6), rep(weights_short[3],5), rep(weights_short[4],18))
+      weights = c(rep(weights_short[1],2), rep(weights_short[2],6), rep(weights_short[3],5), rep(weights_short[4],G-13))
     }
 
 
@@ -262,7 +262,7 @@ server = function(input, output, session ) {
             legend.text=element_text(size=14), text = element_text(size=14))+
       theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
             panel.background = element_rect(fill = 'gray95', colour = 'white'))+
-      annotate(geom = 'point', x=c(1:31), y=data$Tests, pch = 21, col = 'black', bg = 'white', size = 2)+
+      annotate(geom = 'point', x=c(1:G), y=data$Tests, pch = 21, col = 'black', bg = 'white', size = 2)+
       annotate(geom = 'point', x=1, y=max(data$Tests), pch = 21, col = 'black', bg = 'white', size = 2)+
       annotate(geom = 'text', x=1.5, y=max(data$Tests), label = 'number of tests available', hjust=0)
       
@@ -289,7 +289,7 @@ server = function(input, output, session ) {
             legend.text=element_text(size=14), text = element_text(size=14))+
       theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
             panel.background = element_rect(fill = 'gray95', colour = 'white'))+
-      annotate(geom = 'point', x=c(1:31), y=data$Tests, pch = 21, col = 'black', bg = 'white', size = 2)+
+      annotate(geom = 'point', x=c(1:G), y=data$Tests, pch = 21, col = 'black', bg = 'white', size = 2)+
       annotate(geom = 'point', x=1, y=max(data$Tests), pch = 21, col = 'black', bg = 'white', size = 2)+
       annotate(geom = 'text', x=1.5, y=max(data$Tests), label = 'number of tests available', hjust=0)
     
@@ -360,15 +360,15 @@ server = function(input, output, session ) {
       p1 = ggplot(data=Test.symptom.long,aes(x=date,y=value,fill=variable))+
         geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
         scale_y_continuous()+
-        scale_x_discrete(breaks=break.ref, labels = paste0('wk ', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=break.ref, labels = paste0('', c(1:length(break.ref))))+
         ggtitle("Tests allocated to each symptom group")+
         ylab("Number of tests")+
-        xlab(" ")+
+        xlab("Generation (weeks)")+
         guides(fill=guide_legend(title=""))+
         scale_fill_manual(values=c('#9E0142','#F46D43',"#FEE08B"),
                           labels=c('severe', 'mild', 'asymptomatic'),
                           breaks=c('severe', 'mild', 'asymptomatic'))+
-        theme(axis.text.x = element_text(angle = 60,hjust=1, vjust = 1),legend.position="top",
+        theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
               legend.text=element_text(size=14), text = element_text(size=14))+
         theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
               panel.background = element_rect(fill = 'gray95', colour = 'white'))
@@ -384,14 +384,14 @@ server = function(input, output, session ) {
       p2 = ggplot(data=Test.age.long,aes(x=date,y=value,fill=variable))+
         geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
         scale_y_continuous()+
-        scale_x_discrete(breaks=break.ref, labels = paste0('wk ', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=break.ref, labels = paste0('', c(1:length(break.ref))))+
         ggtitle("Tests allocated to each age group")+
         ylab("Number of tests")+
-        xlab("")+
+        xlab("Generation (weeks)")+
         guides(fill=guide_legend(title=""))+
         scale_fill_manual(values=c('#ABDDA4','#66C2A5','#3288BD','#5E4FA2'),
                           labels = c("age 0-17","age 18-49","age 50-64","age 65+"))+
-        theme(axis.text.x = element_text(angle = 60,hjust=1, vjust = 1),legend.position="top",
+        theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
               legend.text=element_text(size=14), text = element_text(size=14))+
         theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
               panel.background = element_rect(fill = 'gray95', colour = 'white'))
@@ -401,7 +401,7 @@ server = function(input, output, session ) {
       MAXIMUM = max(c(as.numeric(as.character(T_rptCase_simuCase$reported.cases)),as.numeric(as.character(T_rptCase_simuCase$estimated.positive.tests))), na.rm=T)
       p3 = ggplot(data=T_rptCase_simuCase,aes(x=date,group=1))+
         geom_bar(aes(y=reported.cases,fill='population cases'),stat="identity",position = 'identity',alpha=1, color= "gray30")+
-        scale_x_discrete(breaks=break.ref, labels = paste0('wk ', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=break.ref, labels = paste0('', c(1:length(break.ref))))+
         geom_line(aes(y=estimated.positive.tests,color='optimal test strategy'),size=1.5)+
         geom_point(aes(y=estimated.positive.tests), bg = alpha('darkred',0.7), shape = 21, size = 4)+
         #scale_y_continuous()+
@@ -410,10 +410,10 @@ server = function(input, output, session ) {
         scale_fill_manual(values = "azure3")+
         ggtitle("Test positive rate with optimal test allocation")+
         ylab("Positive rate")+
-        xlab("")+
+        xlab("Generation (weeks)")+
         guides(color=guide_legend(title=""), fill = guide_legend(title=""))+
         scale_y_continuous(sec.axis = sec_axis(trans = ~., name="w for objective function", breaks = as.numeric(c(0,0.25,0.5,0.75,1)*MAXIMUM), labels = as.character(c(0,0.25,0.5,0.75,1))))+
-        theme(axis.text.x = element_text(angle = 60,hjust=1, vjust = 1),legend.position="top",
+        theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
               legend.text=element_text(size=14), text = element_text(size=14),
               axis.line.y.right = element_line(color = "darkblue"), 
               axis.ticks.y.right = element_line(color = "darkblue"),
@@ -424,7 +424,7 @@ server = function(input, output, session ) {
         annotate(geom = 'segment',x=1-0.4, xend= 2+0.4, y = as.numeric(input$weights[1,1])*MAXIMUM, yend =  as.numeric(input$weights[1,1])*MAXIMUM, col = 'darkblue', lwd = 2)+
         annotate(geom = 'segment',x=3-0.4, xend = 8+0.4, y = as.numeric(input$weights[1,2])*MAXIMUM, yend =  as.numeric(input$weights[1,2])*MAXIMUM, col = 'darkblue', lwd = 2)+
         annotate(geom = 'segment',x=9-0.4, xend = 13+0.4, y = as.numeric(input$weights[1,3])*MAXIMUM, yend =  as.numeric(input$weights[1,3])*MAXIMUM, col = 'darkblue', lwd = 2)+
-        annotate(geom = 'segment',x=14-0.4, xend = 31+0.4, y = as.numeric(input$weights[1,4])*MAXIMUM, yend = as.numeric(input$weights[1,4])*MAXIMUM, col = 'darkblue', lwd = 2)
+        annotate(geom = 'segment',x=14-0.4, xend = G+0.4, y = as.numeric(input$weights[1,4])*MAXIMUM, yend = as.numeric(input$weights[1,4])*MAXIMUM, col = 'darkblue', lwd = 2)
       
       
       ### plot 1.4 ###
@@ -434,7 +434,7 @@ server = function(input, output, session ) {
       MAXIMUM = max(c(as.numeric(pr$reported),as.numeric(pr$findMoreCases)))
       p4=ggplot(data=pr,aes(x=date,group=1))+
         geom_bar(aes(y=reported,fill='population infection rate'),stat="identity",position = 'identity',alpha=1, color= "gray30")+
-        scale_x_discrete(breaks=break.ref, labels = paste0('wk ', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=break.ref, labels = paste0('', c(1:length(break.ref))))+
         geom_line(aes(y=findMoreCases,color='optimal test strategy'),size=1.5)+
         geom_point(aes(y=findMoreCases), bg = alpha('darkred',0.7), shape = 21, size = 4)+
         #scale_y_continuous()+
@@ -443,10 +443,10 @@ server = function(input, output, session ) {
         scale_fill_manual(values = "azure3")+
         ggtitle("Test positive rate with optimal test allocation")+
         ylab("Positive rate")+
-        xlab("")+
+        xlab("Generation (weeks)")+
         guides(color=guide_legend(title=""), fill = guide_legend(title=""))+
         scale_y_continuous(sec.axis = sec_axis(trans = ~., name="w for objective function", breaks = as.numeric(c(0,0.25,0.5,0.75,1)*MAXIMUM), labels = as.character(c(0,0.25,0.5,0.75,1))))+
-        theme(axis.text.x = element_text(angle = 60,hjust=1, vjust = 1),legend.position="top",
+        theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
               legend.text=element_text(size=14), text = element_text(size=14),
               axis.line.y.right = element_line(color = "darkblue"), 
               axis.ticks.y.right = element_line(color = "darkblue"),
@@ -457,7 +457,7 @@ server = function(input, output, session ) {
         annotate(geom = 'segment',x=1-0.4, xend= 2+0.4, y = as.numeric(input$weights[1,1])*MAXIMUM, yend =  as.numeric(input$weights[1,1])*MAXIMUM, col = 'darkblue', lwd = 2)+
         annotate(geom = 'segment',x=3-0.4, xend = 8+0.4, y = as.numeric(input$weights[1,2])*MAXIMUM, yend =  as.numeric(input$weights[1,2])*MAXIMUM, col = 'darkblue', lwd = 2)+
         annotate(geom = 'segment',x=9-0.4, xend = 13+0.4, y = as.numeric(input$weights[1,3])*MAXIMUM, yend =  as.numeric(input$weights[1,3])*MAXIMUM, col = 'darkblue', lwd = 2)+
-        annotate(geom = 'segment',x=14-0.4, xend = 31+0.4, y = as.numeric(input$weights[1,4])*MAXIMUM, yend = as.numeric(input$weights[1,4])*MAXIMUM, col = 'darkblue', lwd = 2)
+        annotate(geom = 'segment',x=14-0.4, xend = G+0.4, y = as.numeric(input$weights[1,4])*MAXIMUM, yend = as.numeric(input$weights[1,4])*MAXIMUM, col = 'darkblue', lwd = 2)
       
       A1 = gridExtra::grid.arrange(p1,p2,p3,p4,nrow=2)
       
