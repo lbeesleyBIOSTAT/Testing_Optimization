@@ -51,7 +51,7 @@ ui<- shiny::fluidPage(
                         ),
                         shiny::fluidRow(
                           shiny::column(10,
-                                      shinyMatrix::matrixInput("weights",label = "Enter objective function w for each time interval [0-1]:",
+                                      shinyMatrix::matrixInput("weights",label = "Enter weight w for each time interval [0-1]:",
                                                                rows=list(names = FALSE,editableNames = FALSE), cols = list(names = TRUE,editableNames = FALSE),
                                                                value = STARTING_WEIGHTS, class = "numeric"))),
                         value = 'Forecasting'
