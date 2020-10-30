@@ -5,20 +5,20 @@ find_t_f = function(ta,ts){
   ta = ta
   tm = 1-ta-ts
   
-  age1 = 2.16E-01
-  age2 = 4.87E-01
-  age3 = 1.75E-01
+  age1 = 0.24
+  age2 = 0.43
+  age3 = 0.21
   age4 = 1-age1-age2-age3
   
   # Conditional probability
-  prob.age1.given.s = 1.10E-02
-  prob.age2.given.s = 1.64E-01
+  prob.age1.given.s = 1.11E-02
+  prob.age2.given.s = 1.65E-01
   prob.age3.given.s = 3.33E-01
   prob.age4.given.s = 1-prob.age1.given.s-prob.age2.given.s-prob.age3.given.s
   
-  prob.age1.given.m = 4.03E-02
-  prob.age2.given.m = 4.53E-01
-  prob.age3.given.m = 3.62E-01
+  prob.age1.given.m = 4.14E-02
+  prob.age2.given.m = 4.55E-01
+  prob.age3.given.m = 3.60E-01
   prob.age4.given.m = 1-prob.age1.given.m-prob.age2.given.m-prob.age3.given.m
   
   ts_age1 = ts*prob.age1.given.s/age1
@@ -36,7 +36,7 @@ find_t_f = function(ta,ts){
   ta_age3 = 1-ts_age3-tm_age3
   ta_age4 = 1-ts_age4-tm_age4
   
-### In the uninfected population
+  ### In the uninfected population
   
   fs_age1 = 9.61866E-06
   fs_age2 = 9.64228E-06
@@ -56,7 +56,7 @@ find_t_f = function(ta,ts){
   fs = fs_age1*age1 + fs_age2*age2 + fs_age3*age3 + fs_age4*age4
   fm = fm_age1*age1 + fm_age2*age2 + fm_age3*age3 + fm_age4*age4
   fa = fa_age1*age1 + fa_age2*age2 + fa_age3*age3 + fa_age4*age4
-   
+  
   return(list(ts = ts,
               tm = tm,
               ta = ta,

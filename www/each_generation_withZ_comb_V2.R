@@ -1,7 +1,7 @@
 
 each_generation_withZ = function(N,D,ta,ts,Total,beta,alpha,c_pos,w){
   N = N
-  tf = find_t_f(ta=ta,ts=(1-ta)/5)
+  tf = find_t_f(ta=ta,ts=ts)
   
   ts = tf$ts
   ts_age1 = tf$ts_age1
