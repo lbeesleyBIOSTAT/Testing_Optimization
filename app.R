@@ -10,7 +10,7 @@ colnames(STARTING_AGES) = c("age 0-17","age 18-49","age 50-64","age 65+")
 
 ui<- shiny::fluidPage(
   shiny::tags$style("* { font-family: Arial; }"),
-  shiny::titlePanel("Exploring Optimal SARS-CoV-2 Viral Test Allocation for New York"),
+  shiny::titlePanel("Exploring Optimal SARS-CoV-2 Viral Test Allocation"),
   shiny::sidebarLayout(
     shiny::sidebarPanel(
       shiny::fluidRow(
@@ -20,12 +20,12 @@ ui<- shiny::fluidPage(
         shiny::column(1
         ),
         shiny::column(9,
-                      print("This application calculates optimal SARS-CoV-2 viral test allocation by age and symptom severity given various input parameters. Users can explore how this optimal strategy differs from historical testing in New York City and explore test allocation for a hypothetical infection wave in a population similar to New York.  \n")
+                      print("This application calculates optimal SARS-CoV-2 viral test allocation by age and symptom severity given various input parameters. Users can (1) explore how this optimal strategy differs from historical testing in New York City, (2) explore test allocation for a hypothetical infection wave in a population similar to New York, and (3) explore allocation of two available tests at the local level (e.g. rapid vs. RT-PCR test allocation for a university)   \n")
         ),
         shiny::hr(),
         shiny::tabsetPanel(
           ### PATIENT CHARACTERISTICS
-          shiny::tabPanel('Historical Data',
+          shiny::tabPanel('Historical New York Data',
                           shiny::br(),
                           shiny::column(6,
                                         shiny::sliderInput("w", "Shrinkage weight (w):", value= 1, min = 0, max = 1, step = 0.1),
@@ -40,7 +40,7 @@ ui<- shiny::fluidPage(
                           ),
                           value = 'Historical'
           ),#break tabPanel
-          shiny::tabPanel('Hypothetical Scenario',
+          shiny::tabPanel('Hypothetical Population like New York',
                           shiny::br(),
                           shiny::column(6,
                                         #shiny::sliderInput("w2", "Shrinkage weight (w):", value= 1, min = 0, max = 1, step = 0.1),
@@ -59,20 +59,19 @@ ui<- shiny::fluidPage(
                                                                    value = STARTING_WEIGHTS, class = "numeric"))),
                           value = 'Forecasting'
           ),#break tabPanel
-          shiny::tabPanel('Simulations with Two Tests',
+          shiny::tabPanel('Allocation of Two Tests at Local Level',
                           shiny::br(),
                           shiny::column(6,
-                                        shiny::sliderInput("cost", "Total budget:", value= 100000, min =5000, max = 1000000, step = 5000),
-                                        shiny::sliderInput("y1", "Cost per test (test 1):", value= 5, min =0, max = 50, step = 1),
-                                        shiny::sliderInput("y2", "Cost per test (test 2):", value= 200, min =0, max = 500, step = 1),
+                                        shiny::sliderInput("cost", "Total budget:", value= 100000, min =5000, max = 300000, step = 5000),
+                                        shiny::sliderInput("y", "Cost per test (test 1, test 2):", value= c(5,200), min =0, max = 300, step = 1),
+                                        #shiny::sliderInput("y2", "Cost per test (test 2):", value= 200, min =input.y1, max = 500, step = 1),
                                         shiny::sliderInput("size3", "Total population size:", value= 50000, min = 5000, max = 100000, step = 5000),
                                         shiny::sliderInput("num3", "Number of cases in population:", value= 500, min = 5, max = 10000, step = 10)
                           ),  
                           shiny::column(6,
-                                        shiny::sliderInput("falsenegt1", "False negative probability (test 1):", value= 0.70, min = 0.01, max = 0.9, step = 0.01),
-                                        shiny::sliderInput("falsepost1", "False positive probability (test 1):", value= 0.01, min = 0.01, max = 0.05, step = 0.01),
-                                        shiny::sliderInput("falsenegt2", "False negative probability (test 2):", value= 0.20, min = 0.01, max = 0.9, step = 0.01),
-                                        shiny::sliderInput("falsepost2", "False positive probability (test 2):", value= 0.01, min = 0.01, max = 0.05, step = 0.01)
+                                        shiny::sliderInput("falsenegt", "False negative rate (test2, test 1):", value= c(0.20,0.70), min = 0.01, max = 0.9, step = 0.01),
+                                        shiny::sliderInput("falsepost1", "False positive rate (test 1):", value= 0.01, min = 0.01, max = 0.05, step = 0.01),
+                                        shiny::sliderInput("falsepost2", "False positive rate (test 2):", value= 0.01, min = 0.01, max = 0.05, step = 0.01)
                           ),
                           shiny::fluidRow(
                             shiny::column(10,
@@ -96,7 +95,9 @@ ui<- shiny::fluidPage(
       shiny::fluidRow(
         shiny::column(6,
                       shiny::plotOutput("plots", inline = TRUE),
-                      shiny::img(src="ObjectiveFunction.png",height=200,width=900)), 
+                      conditionalPanel( condition = "input.TABCHOSEN == 'Historical'", shiny::img(src="ObjectiveFunction.png",height=200,width=900)),
+                      conditionalPanel( condition = "input.TABCHOSEN == 'Forecasting'", shiny::img(src="ObjectiveFunction.png",height=200,width=900)), 
+                      conditionalPanel( condition = "input.TABCHOSEN == 'Two_Tests'", shiny::img(src="ObjectiveFunctionTwoTests.png",height=200,width=900)))
       ),
       shiny::br()
       , width = 6)	    
@@ -156,6 +157,13 @@ server = function(input, output, session ) {
     shiny::validate(
       need(sum(input$ages>=0 & input$ages <=1)==4 & sum(input$ages)==1, 'age proportion must be in [0,1] and proportions must sum to 1 across age categories')
     )    
+    shiny::validate(
+      need(input$y[1]<input$y[2], 'cost for test 1 should be less than test 2')
+    )  
+    
+    shiny::validate(
+      need(input$falsenegt[1]<input$falsenegt[2], 'false negative rate for test 2 should be less than for test 1')
+    ) 
     options(scipen=999)
     if(input$TABCHOSEN == 'Historical'){
       N = 8175133 
@@ -180,11 +188,11 @@ server = function(input, output, session ) {
       N = as.numeric(input$size3) 
       weights = 1
       money = as.numeric(input$cost)
-      y1 = as.numeric(input$y1)
-      y2 = as.numeric(input$y2)
-      falsenegt1 = as.numeric(input$falsenegt1)
+      y1 = min(as.numeric(input$y))
+      y2 = max(as.numeric(input$y))
+      falsenegt1 = max(as.numeric(input$falsenegt))
+      falsenegt2 = min(as.numeric(input$falsenegt))
       falsepost1 = as.numeric(input$falsepost1)
-      falsenegt2 = as.numeric(input$falsenegt2)
       falsepost2 = as.numeric(input$falsepost2)
       agedist = input$ages
     }
@@ -253,7 +261,7 @@ server = function(input, output, session ) {
       break.ref = as.character(NY_date)
       break.ref = gsub('/','-',break.ref)
       break.ref = gsub('-2020','',break.ref)
-      
+      result[result<0] = 0
     }else{
       ta.list = seq(0.5,0.9,by=0.05)
       result = matrix(NA,nrow = length(ta.list), ncol = 11)
@@ -286,6 +294,7 @@ server = function(input, output, session ) {
         result[i,'test2_s'] = floor(sum(model$asignedTests[13:16])) # Test 2, symp=s
         result[i,'test2_m'] = floor(sum(model$asignedTests[17:20])) # Test 2, symp=m
         result[i,'test2_a'] = floor(sum(model$asignedTests[21:24])) # Test 2, symp=a
+        result[result<0] = 0
       }
       result = as.data.frame(result)
     }
