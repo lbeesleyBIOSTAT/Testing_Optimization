@@ -20,7 +20,7 @@ ui<- shiny::fluidPage(
         shiny::column(1
         ),
         shiny::column(9,
-                      print("This application calculates optimal SARS-CoV-2 viral test allocation by age and symptom severity given various input parameters. Users can (1) explore how this optimal strategy differs from historical testing in New York City, (2) explore test allocation for a hypothetical infection wave in a population similar to New York, and (3) explore allocation of two available tests at the local level (e.g. rapid vs. RT-PCR test allocation for a university)   \n")
+                      print("This application calculates optimal SARS-CoV-2 viral test allocation by age and symptom severity given various input parameters. Users can (1) explore how this optimal strategy differs from historical testing in New York City, (2) explore test allocation for a hypothetical population similar to New York, and (3) explore allocation of two available tests at the local level (e.g. rapid vs. RT-PCR test allocation for a university)   \n")
         ),
         shiny::hr(),
         shiny::tabsetPanel(
@@ -28,43 +28,47 @@ ui<- shiny::fluidPage(
           shiny::tabPanel('Historical New York Data',
                           shiny::br(),
                           shiny::column(6,
-                                        shiny::sliderInput("w", "Shrinkage weight (w):", value= 1, min = 0, max = 1, step = 0.1),
+                                        shiny::selectInput("w", "Goal of testing:", choices=c('Detecting Cases (w=1)','Outbreak Surveillance (w=0)')),
                                         shiny::sliderInput("falseneg", "False negative probability:", value= 0.3, min = 0.01, max = 0.4, step = 0.01),
                                         shiny::sliderInput("ta", "Proportion of cases w/o symptoms:", value= 0.75, min =0.30, max = 0.95, step = 0.01)
                           ),
                           shiny::column(6,
-                                        shiny::sliderInput("targetpos", "Target positivity rate (w<1 only):", value= 0.02, min =0.01, max = 0.15, step = 0.01),
                                         shiny::sliderInput("falsepos", "False positive probability:", value= 0.01, min = 0.01, max = 0.05, step = 0.01),
                                         shiny::br(),
-                                        shiny::sliderInput("mult", "Case under-reporting factor:", value= 5, min = 1, max = 20, step = 1)
+                                        shiny::sliderInput("mult", "Case under-reporting factor:", value= 5, min = 1, max = 20, step = 1),
+                                        conditionalPanel(condition = "input.w=='Outbreak Surveillance (w=0)'",
+                                        shiny::sliderInput("targetpos", "Target positivity rate:", value= 0.03, min =0.01, max = 0.15, step = 0.01))
+                                        
                           ),
                           value = 'Historical'
           ),#break tabPanel
           shiny::tabPanel('Hypothetical Population like New York',
                           shiny::br(),
                           shiny::column(6,
-                                        #shiny::sliderInput("w2", "Shrinkage weight (w):", value= 1, min = 0, max = 1, step = 0.1),
+                                        shiny::selectInput("w2", "Goal of testing:", choices=c('Detecting Cases (w=1)','Outbreak Surveillance (w=0)')),
                                         shiny::sliderInput("Total2", "Number of Available Tests (Weekly):", value= 50000, min =25000, max = 200000, step = 5000),
-                                        shiny::sliderInput("falseneg2", "False negative probability:", value= 0.3, min = 0.01, max = 0.4, step = 0.01),
-                                        shiny::sliderInput("ta2", "Proportion of cases w/o symptoms:", value= 0.75, min =0.30, max = 0.95, step = 0.01)),  
+                                        shiny::sliderInput("falseneg2", "False negative probability:", value= 0.3, min = 0.01, max = 0.4, step = 0.01)),
                           shiny::column(6,
-                                        shiny::sliderInput("targetpos2", "Target positivity rate (w<1 only):", value= 0.02, min =0.01, max = 0.15, step = 0.01),
                                         shiny::sliderInput("falsepos2", "False positive probability:", value= 0.01, min = 0.01, max = 0.05, step = 0.01),
-                                        shiny::sliderInput("num2", "Peak number of cases in population:", value= 200000, min = 10000, max = 500000, step = 10000)
+                                        
+                                        conditionalPanel(
+                                          condition = "input.w2=='Detecting Cases (w=1)'",
+                                          shiny::sliderInput("num2_w1", "Number of cases in population:", value= 200000, min = 10000, max = 500000, step = 10000)
+                                        ),
+                                        conditionalPanel(
+                                          condition = "input.w2=='Outbreak Surveillance (w=0)'",
+                                          shiny::sliderInput("num2_w0", "Number of cases in population:", value= 10000, min = 500, max = 50000, step = 500)
+                                        )   ,
+                                        conditionalPanel(condition = "input.w2=='Outbreak Surveillance (w=0)'",
+                                                         shiny::sliderInput("targetpos2", "Target positivity rate:", value= 0.03, min =0.01, max = 0.15, step = 0.01))
                           ),
-                          shiny::fluidRow(
-                            shiny::column(10,
-                                          shinyMatrix::matrixInput("weights",label = "Enter weight w for each time interval [0-1]:",
-                                                                   rows=list(names = FALSE,editableNames = FALSE), cols = list(names = TRUE,editableNames = FALSE),
-                                                                   value = STARTING_WEIGHTS, class = "numeric"))),
-                          value = 'Forecasting'
+                          value = 'Simulations'
           ),#break tabPanel
           shiny::tabPanel('Allocation of Two Tests at Local Level',
                           shiny::br(),
                           shiny::column(6,
                                         shiny::sliderInput("cost", "Total budget:", value= 100000, min =5000, max = 300000, step = 5000),
                                         shiny::sliderInput("y", "Cost per test (test 1, test 2):", value= c(5,200), min =0, max = 300, step = 1),
-                                        #shiny::sliderInput("y2", "Cost per test (test 2):", value= 200, min =input.y1, max = 500, step = 1),
                                         shiny::sliderInput("size3", "Total population size:", value= 50000, min = 5000, max = 100000, step = 5000),
                                         shiny::sliderInput("num3", "Number of cases in population:", value= 500, min = 5, max = 10000, step = 10)
                           ),  
@@ -95,9 +99,9 @@ ui<- shiny::fluidPage(
       shiny::fluidRow(
         shiny::column(6,
                       shiny::plotOutput("plots", inline = TRUE),
-                      conditionalPanel( condition = "input.TABCHOSEN == 'Historical'", shiny::img(src="ObjectiveFunction.png",height=200,width=900)),
-                      conditionalPanel( condition = "input.TABCHOSEN == 'Forecasting'", shiny::img(src="ObjectiveFunction.png",height=200,width=900)), 
-                      conditionalPanel( condition = "input.TABCHOSEN == 'Two_Tests'", shiny::img(src="ObjectiveFunctionTwoTests.png",height=200,width=900)))
+                      conditionalPanel( condition = "input.TABCHOSEN == 'Historical'", shiny::img(src="Objective1.png",height=200,width=900)),
+                      conditionalPanel( condition = "input.TABCHOSEN == 'Simulations'", shiny::img(src="Objective2.png",height=200,width=900)), 
+                      conditionalPanel( condition = "input.TABCHOSEN == 'Two_Tests'", shiny::img(src="Objective3.png",height=200,width=900)))
       ),
       shiny::br()
       , width = 6)	    
@@ -152,9 +156,6 @@ server = function(input, output, session ) {
   
   GetPlots <- function(input){
     shiny::validate(
-      need(sum(input$weights>=0 & input$weights <=1)==4, 'w must be in [0,1]')
-    )
-    shiny::validate(
       need(sum(input$ages>=0 & input$ages <=1)==4 & sum(input$ages)==1, 'age proportion must be in [0,1] and proportions must sum to 1 across age categories')
     )    
     shiny::validate(
@@ -167,23 +168,22 @@ server = function(input, output, session ) {
     options(scipen=999)
     if(input$TABCHOSEN == 'Historical'){
       N = 8175133 
-      weights = rep(as.numeric(input$w),G) #1
+      weights = rep(ifelse(input$w == 'Detecting Cases (w=1)',1,0),G) #1
       ta = as.numeric(input$ta)
       ts = (1-ta)/4
       targetpos = as.numeric(input$targetpos)
       mult= as.numeric(input$mult) #5 
       falseneg = as.numeric(input$falseneg)
       falsepos = as.numeric(input$falsepos)
-    }else if(input$TABCHOSEN == 'Forecasting'){
+    }else if(input$TABCHOSEN == 'Simulations'){
       N = 8175133 
-      ta = as.numeric(input$ta2)
-      ts = (1-ta)/4
+      ta = seq(0.5, 0.9, 0.05)
       targetpos = as.numeric(input$targetpos2)
-      mult= as.numeric(input$num2)/38537 #5 
+      true_cases= ifelse(input$w2 == 'Detecting Cases (w=1)', as.numeric(input$num2_w1) ,as.numeric(input$num2_w0))
+      severe_cases= 5000
       falseneg = as.numeric(input$falseneg2)
       falsepos = as.numeric(input$falsepos2) 
-      weights_short = as.numeric(as.vector(input$weights))
-      weights = c(rep(weights_short[1],2), rep(weights_short[2],6), rep(weights_short[3],5), rep(weights_short[4],G-13))
+      weights = as.numeric(input$w2 == 'Detecting Cases (w=1)')
     }else{
       N = as.numeric(input$size3) 
       weights = 1
@@ -198,7 +198,7 @@ server = function(input, output, session ) {
     }
     
     
-    if(input$TABCHOSEN %in% c('Historical', 'Forecasting')){
+    if(input$TABCHOSEN == 'Historical'){
       data = as.data.frame(matrix(NA, nrow = G, ncol = 3))
       colnames(data) = c("Generation","Tests","ReportedCases")
       # The first generation
@@ -262,6 +262,59 @@ server = function(input, output, session ) {
       break.ref = gsub('/','-',break.ref)
       break.ref = gsub('-2020','',break.ref)
       result[result<0] = 0
+    }else if(input$TABCHOSEN == 'Simulations' ){
+      ta.list = seq(0.5,0.9,by=0.05)
+      result = matrix(NA,nrow = length(ta.list), ncol = 10)
+      colnames(result) = c("date","positive.rate","severe","mild","asymptomatics",
+                           "age1","age2","age3","age4","positive.tests")
+      Test.result = matrix(NA,nrow = length(ta.list),ncol = 8)
+      colnames(Test.result) = c("date","asymptomatics","mild","severe","age1","age2","age3","age4")
+      for(i in 1:nrow(result)){
+        result[i,1] = i
+        ### Fixed D. Note: D = (4/(1-ta))*number of severe cases
+        model = each_generation_withZ(N = N,
+                                      D = true_cases,
+                                      ta = ta.list[i],
+                                      ts = (1-ta.list[i])/4,
+                                      Total=input$Total2,
+                                      beta=falseneg,
+                                      alpha=falsepos,
+                                      c_pos=targetpos,
+                                      w=weights)
+        
+        ### Fixed number of severe cases
+        # tf = find_t_f(ta=ta.list[i],
+        #               ts=(1-ta.list[i])/4)
+        # model = each_generation_withZ(N = N,
+        #                               D = as.numeric(4*severe_cases/(1 - tf$ta)),
+        #                               ta = ta.list[i],
+        #                               ts = (1-ta.list[i])/4,
+        #                               Total=input$Total2,
+        #                               beta=falseneg,
+        #                               alpha=falsepos,
+        #                               c_pos=targetpos,
+        #                               w=weights)
+
+        result[i,2] = floor(model$P.hat)/input$Total2
+        result[i,3] = model$selectProb.s
+        result[i,4] = model$selectProb.m
+        result[i,5] = model$selectProb.a
+        result[i,6] = model$selectProb.age1
+        result[i,7] = model$selectProb.age2
+        result[i,8] = model$selectProb.age3
+        result[i,9] = model$selectProb.age4
+        result[i,10] = model$P.hat
+        Test.result[i,1] = i
+        Test.result[i,2] = floor(sum(model$asignedTests[9:12]))
+        Test.result[i,3] = floor(sum(model$asignedTests[5:8]))
+        Test.result[i,4] = floor(sum(model$asignedTests[1:4]))
+        Test.result[i,5] = floor(model$asignedTests[1]+model$asignedTests[5]+model$asignedTests[9])
+        Test.result[i,6] = floor(model$asignedTests[2]+model$asignedTests[6]+model$asignedTests[10])
+        Test.result[i,7] = floor(model$asignedTests[3]+model$asignedTests[7]+model$asignedTests[11])
+        Test.result[i,8] = floor(model$asignedTests[4]+model$asignedTests[8]+model$asignedTests[12])
+      }
+      result = as.data.frame(result)
+      result[result<0] = 0
     }else{
       ta.list = seq(0.5,0.9,by=0.05)
       result = matrix(NA,nrow = length(ta.list), ncol = 11)
@@ -298,13 +351,12 @@ server = function(input, output, session ) {
       }
       result = as.data.frame(result)
     }
-    print(result)
-    
+
     ####################
     ### PLOT RESULTS ###
     ####################
     
-    
+ 
     if(input$TABCHOSEN =='Historical'){
       T_rptCase_simuCase = data.frame('date'=break.ref,
                                       'reported cases' = data$ReportedCases,
@@ -416,26 +468,23 @@ server = function(input, output, session ) {
       A1 = gridExtra::grid.arrange(p1,p2,p3,p4,nrow=2)
       
       
-    }else if(input$TABCHOSEN =='Forecasting'){
+    }else if(input$TABCHOSEN =='Simulations'){
       
-      
-      T_rptCase_simuCase = data.frame('date'=break.ref,
-                                      'reported cases' = (as.numeric(as.character(data$ReportedCases))*mult),
-                                      'estimated positive tests' = as.numeric(as.character(result$positive.tests)))
-      
+
+
       ### plot 1.1 ###
-      Test.result.symptom = data.frame('date' = break.ref,
+      Test.result.symptom = data.frame('date' = ta.list,
                                        'asymptomatic' = Test.result[,2],
                                        'mild' = Test.result[,3],
                                        'severe' = Test.result[,4])
       Test.symptom.long = reshape2::melt(Test.result.symptom,id.vars = "date")
-      p1 = ggplot(data=Test.symptom.long,aes(x=date,y=value,fill=variable))+
+      p1 = ggplot(data=Test.symptom.long,aes(x=factor(date),y=value,fill=variable))+
         geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
         scale_y_continuous()+
-        scale_x_discrete(breaks=break.ref, labels = paste0('', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=ta.list, labels = ta.list)+
         ggtitle("Tests allocated to each symptom group")+
         ylab("Number of tests")+
-        xlab("Generation (weeks)")+
+        xlab("Probability of having no symptoms for an infected individual)")+
         guides(fill=guide_legend(title=""))+
         scale_fill_manual(values=c('#9E0142','#F46D43',"#FEE08B"),
                           labels=c('severe', 'mild', 'asymptomatic'),
@@ -446,20 +495,20 @@ server = function(input, output, session ) {
               panel.background = element_rect(fill = 'gray95', colour = 'white'))
       
       ### plot 1.2 ###
-      Test.result.age = data.frame('date' = break.ref,
+      Test.result.age = data.frame('date' = ta.list,
                                    'age1' = Test.result[,5],
                                    'age2' = Test.result[,6],
                                    'age3' = Test.result[,7],
                                    'age4' = Test.result[,8])
       Test.age.long = reshape2::melt(Test.result.age,id.vars = "date")
       
-      p2 = ggplot(data=Test.age.long,aes(x=date,y=value,fill=variable))+
+      p2 = ggplot(data=Test.age.long,aes(x=factor(date),y=value,fill=variable))+
         geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
         scale_y_continuous()+
-        scale_x_discrete(breaks=break.ref, labels = paste0('', c(1:length(break.ref))))+
+        scale_x_discrete(breaks=ta.list, labels = ta.list)+
         ggtitle("Tests allocated to each age group")+
         ylab("Number of tests")+
-        xlab("Generation (weeks)")+
+        xlab("Probability of having no symptoms for an infected individual")+
         guides(fill=guide_legend(title=""))+
         scale_fill_manual(values=c('#ABDDA4','#66C2A5','#3288BD','#5E4FA2'),
                           labels = c("age 0-17","age 18-49","age 50-64","age 65+"))+
@@ -468,12 +517,12 @@ server = function(input, output, session ) {
         theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
               panel.background = element_rect(fill = 'gray95', colour = 'white'))
       
+      T_rptCase_simuCase = data.frame('date'=ta.list,
+                                      'estimated positive tests' = result$positive.tests/input$Total2)
       
       ### plot 1.3 ###
-      MAXIMUM = max(c(as.numeric(as.character(T_rptCase_simuCase$reported.cases)),as.numeric(as.character(T_rptCase_simuCase$estimated.positive.tests))), na.rm=T)
-      p3 = ggplot(data=T_rptCase_simuCase,aes(x=date,group=1))+
-        geom_bar(aes(y=reported.cases,fill='population cases'),stat="identity",position = 'identity',alpha=1, color= "gray30")+
-        scale_x_discrete(breaks=break.ref, labels = paste0('', c(1:length(break.ref))))+
+      p3 = ggplot(data=T_rptCase_simuCase,aes(x=factor(date),group=1))+
+        scale_x_discrete(breaks=ta.list, labels = ta.list)+
         geom_line(aes(y=estimated.positive.tests,color='optimal test strategy'),size=1.5)+
         geom_point(aes(y=estimated.positive.tests), bg = alpha('darkred',0.7), shape = 21, size = 4)+
         #scale_y_continuous()+
@@ -482,56 +531,19 @@ server = function(input, output, session ) {
         scale_fill_manual(values = "azure3")+
         ggtitle("Test positive rate with optimal test allocation")+
         ylab("Positive rate")+
-        xlab("Generation (weeks)")+
+        xlab("Probability of having no symptoms for an infected individual")+
         guides(color=guide_legend(title=""), fill = guide_legend(title=""))+
-        scale_y_continuous(sec.axis = sec_axis(trans = ~., name="w for objective function", breaks = as.numeric(c(0,0.25,0.5,0.75,1)*MAXIMUM), labels = as.character(c(0,0.25,0.5,0.75,1))))+
         theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
-              legend.text=element_text(size=14), text = element_text(size=14),
-              axis.line.y.right = element_line(color = "darkblue"), 
-              axis.ticks.y.right = element_line(color = "darkblue"),
-              axis.text.y.right = element_text(color = "darkblue"),
-              axis.title.y.right = element_text(color = "darkblue"))+
+              legend.text=element_text(size=14), text = element_text(size=14))+
         theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
-              panel.background = element_rect(fill = 'gray95', colour = 'white'))+
-        annotate(geom = 'segment',x=1-0.4, xend= 2+0.4, y = as.numeric(input$weights[1,1])*MAXIMUM, yend =  as.numeric(input$weights[1,1])*MAXIMUM, col = 'darkblue', lwd = 2)+
-        annotate(geom = 'segment',x=3-0.4, xend = 8+0.4, y = as.numeric(input$weights[1,2])*MAXIMUM, yend =  as.numeric(input$weights[1,2])*MAXIMUM, col = 'darkblue', lwd = 2)+
-        annotate(geom = 'segment',x=9-0.4, xend = 13+0.4, y = as.numeric(input$weights[1,3])*MAXIMUM, yend =  as.numeric(input$weights[1,3])*MAXIMUM, col = 'darkblue', lwd = 2)+
-        annotate(geom = 'segment',x=14-0.4, xend = G+0.4, y = as.numeric(input$weights[1,4])*MAXIMUM, yend = as.numeric(input$weights[1,4])*MAXIMUM, col = 'darkblue', lwd = 2)
-      
-      
-      ### plot 1.4 ###
-      pr= data.frame('date' = break.ref,
-                     'reported' = round(data$ReportedCases*mult/N,3),
-                     'findMoreCases' = round(result$positive.rate,3))
-      MAXIMUM = max(c(as.numeric(pr$reported),as.numeric(pr$findMoreCases)))
-      p4=ggplot(data=pr,aes(x=date,group=1))+
-        geom_bar(aes(y=reported,fill='population infection rate'),stat="identity",position = 'identity',alpha=1, color= "gray30")+
-        scale_x_discrete(breaks=break.ref, labels = paste0('', c(1:length(break.ref))))+
-        geom_line(aes(y=findMoreCases,color='optimal test strategy'),size=1.5)+
-        geom_point(aes(y=findMoreCases), bg = alpha('darkred',0.7), shape = 21, size = 4)+
-        #scale_y_continuous()+
-        scale_color_manual(labels=c("optimal test strategy"),
-                           values=c("optimal test strategy"="darkred"))+
-        scale_fill_manual(values = "azure3")+
-        ggtitle("Test positive rate with optimal test allocation")+
-        ylab("Positive rate")+
-        xlab("Generation (weeks)")+
-        guides(color=guide_legend(title=""), fill = guide_legend(title=""))+
-        scale_y_continuous(sec.axis = sec_axis(trans = ~., name="w for objective function", breaks = as.numeric(c(0,0.25,0.5,0.75,1)*MAXIMUM), labels = as.character(c(0,0.25,0.5,0.75,1))))+
-        theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
-              legend.text=element_text(size=14), text = element_text(size=14),
-              axis.line.y.right = element_line(color = "darkblue"), 
-              axis.ticks.y.right = element_line(color = "darkblue"),
-              axis.text.y.right = element_text(color = "darkblue"),
-              axis.title.y.right = element_text(color = "darkblue"))+
-        theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
-              panel.background = element_rect(fill = 'gray95', colour = 'white'))+
-        annotate(geom = 'segment',x=1-0.4, xend= 2+0.4, y = as.numeric(input$weights[1,1])*MAXIMUM, yend =  as.numeric(input$weights[1,1])*MAXIMUM, col = 'darkblue', lwd = 2)+
-        annotate(geom = 'segment',x=3-0.4, xend = 8+0.4, y = as.numeric(input$weights[1,2])*MAXIMUM, yend =  as.numeric(input$weights[1,2])*MAXIMUM, col = 'darkblue', lwd = 2)+
-        annotate(geom = 'segment',x=9-0.4, xend = 13+0.4, y = as.numeric(input$weights[1,3])*MAXIMUM, yend =  as.numeric(input$weights[1,3])*MAXIMUM, col = 'darkblue', lwd = 2)+
-        annotate(geom = 'segment',x=14-0.4, xend = G+0.4, y = as.numeric(input$weights[1,4])*MAXIMUM, yend = as.numeric(input$weights[1,4])*MAXIMUM, col = 'darkblue', lwd = 2)
-      
-      A1 = gridExtra::grid.arrange(p1,p2,p3,p4,nrow=2)
+              panel.background = element_rect(fill = 'gray95', colour = 'white'))
+      if(input$w2 == 'Detecting Cases (w=1)'){
+        p3 = p3 + ylim(0,1)
+      }else{
+        p3 = p3 + geom_hline(yintercept = input$targetpos)
+      }
+
+      A1 = gridExtra::grid.arrange(p1,p2,p3,nrow=2)
       
     }else{
       
