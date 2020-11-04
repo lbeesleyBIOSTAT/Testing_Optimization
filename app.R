@@ -70,7 +70,7 @@ ui<- shiny::fluidPage(
                                         shiny::sliderInput("cost", "Total budget:", value= 100000, min =5000, max = 300000, step = 5000),
                                         shiny::sliderInput("y", "Cost per test (test 1, test 2):", value= c(5,200), min =0, max = 300, step = 1),
                                         shiny::sliderInput("size3", "Total population size:", value= 50000, min = 5000, max = 100000, step = 5000),
-                                        shiny::sliderInput("num3", "Number of cases in population:", value= 500, min = 5, max = 10000, step = 10)
+                                        shiny::sliderInput("num3", "Number of cases in population:", value= 500, min = 5, max = 5000, step = 10)
                           ),  
                           shiny::column(6,
                                         shiny::sliderInput("falsenegt", "False negative rate (test2, test 1):", value= c(0.20,0.70), min = 0.01, max = 0.9, step = 0.01),
@@ -543,7 +543,36 @@ server = function(input, output, session ) {
         p3 = p3 + geom_hline(yintercept = input$targetpos)
       }
 
-      A1 = gridExtra::grid.arrange(p1,p2,p3,nrow=2)
+      
+      LOWER = age_distribution(ta=0.55, ts = ((1-0.55)/4), D=true_cases)
+      Test.age.long = rbind(data.frame(Symptoms = 'severe', 
+                                       Age = c("age 0-17","age 18-49","age 50-64","age 65+"),
+                                       Proportions = LOWER$age_given_severe),
+                            data.frame(Symptoms = 'mild', 
+                                       Age = c("age 0-17","age 18-49","age 50-64","age 65+"),
+                                       Proportions = LOWER$age_given_mild),
+                            data.frame(Symptoms = 'asymptomatic', 
+                                       Age = c("age 0-17","age 18-49","age 50-64","age 65+"),
+                                       Proportions = LOWER$age_given_asymp))
+      p4 = ggplot(data=Test.age.long,aes(x=factor(Symptoms),y=Proportions,fill=Age))+
+        geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
+        scale_y_continuous()+
+        scale_x_discrete(breaks=c('asymptomatic', 'mild', 'severe'), labels = c('asymptomatic', 'mild', 'severe'))+
+        ggtitle("Population age distribution by symptoms")+
+        ylab("Proportion of people")+
+        xlab("Symptoms")+
+        guides(fill=guide_legend(title=""))+
+        scale_fill_manual(values=c('#ABDDA4','#66C2A5','#3288BD','#5E4FA2'),
+                          labels = c("age 0-17","age 18-49","age 50-64","age 65+"))+
+        theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
+              legend.text=element_text(size=14), text = element_text(size=14))+
+        theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
+              panel.background = element_rect(fill = 'gray95', colour = 'white'))
+      
+      
+      
+      
+      A1 = gridExtra::grid.arrange(p1,p2,p3,p4,nrow=2)
       
     }else{
       
