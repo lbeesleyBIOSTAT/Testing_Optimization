@@ -58,6 +58,10 @@ each_generation_withZ = function(N,D,ta,ts,Total,beta,alpha,c_pos,w){
   Na.age2 = (ta_age2*D+fa_age2*(N-D))*age2
   Na.age3 = (ta_age3*D+fa_age3*(N-D))*age3
   Na.age4 = (ta_age4*D+fa_age4*(N-D))*age4
+  # population_distribution = c(Ns.age1, Ns.age2, Ns.age3, Ns.age4,
+  #                             Nm.age1, Nm.age2, Nm.age3, Nm.age4,
+  #                             Na.age1, Na.age2, Na.age3, Na.age4)
+  
   
   ################################################
   N_sym = c((ts_age1*D+fs_age1*(N-D))*age1,(ts_age2*D+fs_age2*(N-D))*age2,(ts_age3*D+fs_age3*(N-D))*age3,(ts_age4*D+fs_age4*(N-D))*age4,

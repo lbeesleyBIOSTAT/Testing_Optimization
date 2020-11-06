@@ -63,7 +63,7 @@ find_t_f = function(ta,ts){
               ts_age1 = ts_age1,
               ts_age2 = ts_age2,
               ts_age3 = ts_age3,
-              ts_age4 = round(ts_age4,1),
+              ts_age4 = ts_age4,#round(ts_age4,1),
               tm_age1 = tm_age1,
               tm_age2 = tm_age2,
               tm_age3 = tm_age3,
@@ -71,7 +71,7 @@ find_t_f = function(ta,ts){
               ta_age1 = ta_age1,
               ta_age2 = ta_age2,
               ta_age3 = ta_age3,
-              ta_age4 = round(ta_age4,1),
+              ta_age4 = ta_age4,#round(ta_age4,1),
               fs = fs,
               fm = fm,
               fa = fa,
@@ -93,3 +93,34 @@ find_t_f = function(ta,ts){
               age4 = age4
   ))
 }
+
+
+
+
+
+age_distribution=function(ta,ts, D,N){
+  tf = find_t_f(ta=ta,ts=ts)
+  age_given_severe = c((tf$ts_age1*D + tf$fs_age1*(N-D))*tf$age1,
+                       (tf$ts_age2*D + tf$fs_age2*(N-D))*tf$age2,
+                       (tf$ts_age3*D + tf$fs_age3*(N-D))*tf$age3,
+                       (tf$ts_age4*D + tf$fs_age4*(N-D))*tf$age4)
+  age_given_severe=age_given_severe/sum(age_given_severe)
+  
+  age_given_mild = c((tf$tm_age1*D + tf$fm_age1*(N-D))*tf$age1,
+                     (tf$tm_age2*D + tf$fm_age2*(N-D))*tf$age2,
+                     (tf$tm_age3*D + tf$fm_age3*(N-D))*tf$age3,
+                     (tf$tm_age4*D + tf$fm_age4*(N-D))*tf$age4)
+  age_given_mild=age_given_mild/sum(age_given_mild)
+  
+  age_given_asymp = c((tf$ta_age1*D + tf$fa_age1*(N-D))*tf$age1,
+                      (tf$ta_age2*D + tf$fa_age2*(N-D))*tf$age2,
+                      (tf$ta_age3*D + tf$fa_age3*(N-D))*tf$age3,
+                      (tf$ta_age4*D + tf$fa_age4*(N-D))*tf$age4)
+  age_given_asymp=age_given_asymp/sum(age_given_asymp)
+  
+  return(list(age_given_severe = age_given_severe,
+              age_given_mild = age_given_mild, 
+              age_given_asymp = age_given_asymp))
+}
+
+
