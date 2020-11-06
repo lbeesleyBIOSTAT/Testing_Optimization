@@ -544,7 +544,7 @@ server = function(input, output, session ) {
       }
 
       
-      LOWER = age_distribution(ta=0.55, ts = ((1-0.55)/4), D=true_cases)
+      LOWER = age_distribution(ta=0.55, ts = ((1-0.55)/4), D=true_cases, N=N)
       Test.age.long = rbind(data.frame(Symptoms = 'severe', 
                                        Age = c("age 0-17","age 18-49","age 50-64","age 65+"),
                                        Proportions = LOWER$age_given_severe),
