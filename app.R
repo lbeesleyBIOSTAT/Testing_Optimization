@@ -143,9 +143,11 @@ library(shiny)
 
 
 ### GLOBAL VARIABLES ###
-#library (readr)
-testdata.url = 'https://raw.githubusercontent.com/nychealth/coronavirus-data/master/tests.csv'
-testdata = readr::read_csv(url(testdata.url))
+testdata.url = 'https://raw.githubusercontent.com/nychealth/coronavirus-data/master/trends/tests.csv'
+testdata = try(readr::read_csv(url(testdata.url)))
+if(class(testdata)[1]=='try-error'){
+  testdata = readr::read_csv(file = 'www/tests.csv')
+}
 ndays = nrow(testdata)
 G = ceiling(ndays/7)
 
