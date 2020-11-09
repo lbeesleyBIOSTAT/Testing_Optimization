@@ -230,6 +230,7 @@ server = function(input, output, session ) {
                            "age1","age2","age3","age4","positive.tests")
       Test.result = matrix(NA,nrow = G,ncol = 8)
       colnames(Test.result) = c("date","asymptomatics","mild","severe","age1","age2","age3","age4")
+      Assigned_Tests = matrix(NA, nrow = G, ncol = 12)
       for(i in 1:nrow(result)){
         result[i,1] = i
         model = each_generation_withZ(N = N,
@@ -258,12 +259,15 @@ server = function(input, output, session ) {
         Test.result[i,6] = floor(model$asignedTests[2]+model$asignedTests[6]+model$asignedTests[10])
         Test.result[i,7] = floor(model$asignedTests[3]+model$asignedTests[7]+model$asignedTests[11])
         Test.result[i,8] = floor(model$asignedTests[4]+model$asignedTests[8]+model$asignedTests[12])
+        Assigned_Tests[i,] = model$asignedTests
       }
       result = as.data.frame(result)
       break.ref = as.character(NY_date)
       break.ref = gsub('/','-',break.ref)
       break.ref = gsub('-2020','',break.ref)
       result[result<0] = 0
+      Assigned_Tests[Assigned_Tests<0] = 0
+      
     }else if(input$TABCHOSEN == 'Simulations' ){
       ta.list = seq(0.5,0.9,by=0.05)
       result = matrix(NA,nrow = length(ta.list), ncol = 10)
@@ -271,6 +275,7 @@ server = function(input, output, session ) {
                            "age1","age2","age3","age4","positive.tests")
       Test.result = matrix(NA,nrow = length(ta.list),ncol = 8)
       colnames(Test.result) = c("date","asymptomatics","mild","severe","age1","age2","age3","age4")
+      Assigned_Tests = matrix(NA, nrow = length(ta.list), ncol = 12)
       for(i in 1:nrow(result)){
         result[i,1] = i
         ### Fixed D. Note: D = (4/(1-ta))*number of severe cases
@@ -284,19 +289,6 @@ server = function(input, output, session ) {
                                       c_pos=targetpos,
                                       w=weights)
         
-        ### Fixed number of severe cases
-        # tf = find_t_f(ta=ta.list[i],
-        #               ts=(1-ta.list[i])/4)
-        # model = each_generation_withZ(N = N,
-        #                               D = as.numeric(4*severe_cases/(1 - tf$ta)),
-        #                               ta = ta.list[i],
-        #                               ts = (1-ta.list[i])/4,
-        #                               Total=input$Total2,
-        #                               beta=falseneg,
-        #                               alpha=falsepos,
-        #                               c_pos=targetpos,
-        #                               w=weights)
-
         result[i,2] = floor(model$P.hat)/input$Total2
         result[i,3] = model$selectProb.s
         result[i,4] = model$selectProb.m
@@ -314,9 +306,11 @@ server = function(input, output, session ) {
         Test.result[i,6] = floor(model$asignedTests[2]+model$asignedTests[6]+model$asignedTests[10])
         Test.result[i,7] = floor(model$asignedTests[3]+model$asignedTests[7]+model$asignedTests[11])
         Test.result[i,8] = floor(model$asignedTests[4]+model$asignedTests[8]+model$asignedTests[12])
+        Assigned_Tests[i,] = model$asignedTests
       }
       result = as.data.frame(result)
       result[result<0] = 0
+      Assigned_Tests[Assigned_Tests<0] = 0
     }else{
       ta.list = seq(0.5,0.9,by=0.05)
       result = matrix(NA,nrow = length(ta.list), ncol = 11)
@@ -418,9 +412,7 @@ server = function(input, output, session ) {
         annotate(geom = 'point', x=c(1:G), y=data$Tests, pch = 21, col = 'black', bg = 'white', size = 2)+
         annotate(geom = 'point', x=1, y=max(data$Tests), pch = 21, col = 'black', bg = 'white', size = 2)+
         annotate(geom = 'text', x=1.5, y=max(data$Tests), label = 'number of tests available', hjust=0)
-      
-      
-      
+
       ### plot 1.3 ###
       
       p3 = ggplot(data=T_rptCase_simuCase,aes(x=date,y=reported.cases,group=1))+
@@ -473,7 +465,6 @@ server = function(input, output, session ) {
     }else if(input$TABCHOSEN =='Simulations'){
       
 
-
       ### plot 1.1 ###
       Test.result.symptom = data.frame('date' = ta.list,
                                        'asymptomatic' = Test.result[,2],
@@ -486,7 +477,7 @@ server = function(input, output, session ) {
         scale_x_discrete(breaks=ta.list, labels = ta.list)+
         ggtitle("Tests allocated to each symptom group")+
         ylab("Number of tests")+
-        xlab("Probability of having no symptoms for an infected individual)")+
+        xlab("Probability of having no symptoms for an infected individual")+
         guides(fill=guide_legend(title=""))+
         scale_fill_manual(values=c('#9E0142','#F46D43',"#FEE08B"),
                           labels=c('severe', 'mild', 'asymptomatic'),
@@ -496,34 +487,10 @@ server = function(input, output, session ) {
         theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
               panel.background = element_rect(fill = 'gray95', colour = 'white'))
       
-      ### plot 1.2 ###
-      Test.result.age = data.frame('date' = ta.list,
-                                   'age1' = Test.result[,5],
-                                   'age2' = Test.result[,6],
-                                   'age3' = Test.result[,7],
-                                   'age4' = Test.result[,8])
-      Test.age.long = reshape2::melt(Test.result.age,id.vars = "date")
-      
-      p2 = ggplot(data=Test.age.long,aes(x=factor(date),y=value,fill=variable))+
-        geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
-        scale_y_continuous()+
-        scale_x_discrete(breaks=ta.list, labels = ta.list)+
-        ggtitle("Tests allocated to each age group")+
-        ylab("Number of tests")+
-        xlab("Probability of having no symptoms for an infected individual")+
-        guides(fill=guide_legend(title=""))+
-        scale_fill_manual(values=c('#ABDDA4','#66C2A5','#3288BD','#5E4FA2'),
-                          labels = c("age 0-17","age 18-49","age 50-64","age 65+"))+
-        theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
-              legend.text=element_text(size=14), text = element_text(size=14))+
-        theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
-              panel.background = element_rect(fill = 'gray95', colour = 'white'))
-      
       T_rptCase_simuCase = data.frame('date'=ta.list,
                                       'estimated positive tests' = result$positive.tests/input$Total2)
-      
       ### plot 1.3 ###
-      p3 = ggplot(data=T_rptCase_simuCase,aes(x=factor(date),group=1))+
+      p2 = ggplot(data=T_rptCase_simuCase,aes(x=factor(date),group=1))+
         scale_x_discrete(breaks=ta.list, labels = ta.list)+
         geom_line(aes(y=estimated.positive.tests,color='optimal test strategy'),size=1.5)+
         geom_point(aes(y=estimated.positive.tests), bg = alpha('darkred',0.7), shape = 21, size = 4)+
@@ -540,12 +507,42 @@ server = function(input, output, session ) {
         theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
               panel.background = element_rect(fill = 'gray95', colour = 'white'))
       if(input$w2 == 'Detecting Cases (w=1)'){
-        p3 = p3 + ylim(0,1)
+        p2 = p2 + ylim(0,1)
       }else{
-        p3 = p3 + geom_hline(yintercept = input$targetpos)
+        p2 = p2 + geom_hline(yintercept = input$targetpos)#+
+         #annotate(geom = 'label', x=1, y=input$targetpos, label = 'Target positive rate', hjust=0)
       }
+      p2 = p2+
+        theme(plot.margin=unit(c(40,5.5,5.5,5.5),"pt"))
+ 
 
+      ### plot 1.1 ###
+      Test.result.symptom.long = data.frame('date' = rep(ta.list,12),
+                                       'value' = as.vector(Assigned_Tests),
+                                       'symptoms' = c(rep('severe', length(ta.list)*4),
+                                                      rep('mild', length(ta.list)*4),
+                                                      rep('asymptomatic', length(ta.list)*4)),
+                                       'age' = c(rep(rep(c("age 0-17","age 18-49","age 50-64","age 65+"), each = length(ta.list)),3)))
+     # Test.result.symptom.long = Test.result.symptom.long[Test.result.symptom.long$date %in% c(0.5, 0.6, 0.7, 0.8,0.9),]
       
+      Test.result.symptom.long$symptoms = factor(Test.result.symptom.long$symptoms, levels = c('severe', 'mild', 'asymptomatic'))
+      p3 = ggplot(data=Test.result.symptom.long,aes(x=factor(date),y=value,fill=age))+
+        geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
+        scale_y_continuous()+
+        scale_x_discrete(breaks=ta.list, labels = ta.list)+
+        ggtitle("Tests allocated to each symptom and age group ")+
+        ylab("Number of tests")+
+        xlab("Probability of having no symptoms for an infected individual")+
+        guides(fill=guide_legend(title=""))+
+        scale_fill_manual(values=c('#ABDDA4','#66C2A5','#3288BD','#5E4FA2'),
+                          labels = c("age 0-17","age 18-49","age 50-64","age 65+"))+
+        theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
+              legend.text=element_text(size=14), text = element_text(size=14))+
+        theme(title=element_text(size=14,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
+              panel.background = element_rect(fill = 'gray95', colour = 'white'))+
+        facet_grid(. ~ symptoms,shrink = TRUE, scales = "free", space = "free_x")#+
+        #theme(plot.margin=unit(c(40,5.5,5.5,5.5),"pt"))
+
       LOWER = age_distribution(ta=0.55, ts = ((1-0.55)/4), D=true_cases, N=N)
       Test.age.long = rbind(data.frame(Symptoms = 'severe', 
                                        Age = c("age 0-17","age 18-49","age 50-64","age 65+"),
@@ -569,13 +566,18 @@ server = function(input, output, session ) {
         theme(axis.text.x = element_text(angle = 0,hjust=0.5, vjust = 1),legend.position="top",
               legend.text=element_text(size=14), text = element_text(size=14))+
         theme(title=element_text(size=12,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
-              panel.background = element_rect(fill = 'gray95', colour = 'white'))
+              panel.background = element_rect(fill = 'gray95', colour = 'white'))+
+        theme(plot.margin=unit(c(40,5.5,5.5,5.5),"pt"))
       
       
       
+
+     # LAYOUT = rbind(c(1,1,1,2,2,2),c(3,3,3,3,4,4))
+     # A1 = gridExtra::grid.arrange(p1,p2,p3,p4,nrow=2, layout_matrix = LAYOUT)
       
-      A1 = gridExtra::grid.arrange(p1,p2,p3,p4,nrow=2)
       
+      LAYOUT = rbind(c(1,1),c(2,3))
+      A1 = gridExtra::grid.arrange(p3,p2,p4,nrow=2, layout_matrix = LAYOUT)
     }else{
       
       ######################## plot 1.1 #######################
