@@ -519,13 +519,13 @@ server = function(input, output, session ) {
       ### plot 1.1 ###
       Test.result.symptom.long = data.frame('date' = rep(ta.list,12),
                                        'value' = as.vector(Assigned_Tests),
-                                       'symptoms' = c(rep('severe', length(ta.list)*4),
-                                                      rep('mild', length(ta.list)*4),
+                                       'symptoms' = c(rep('severe symptoms', length(ta.list)*4),
+                                                      rep('mild symptoms', length(ta.list)*4),
                                                       rep('asymptomatic', length(ta.list)*4)),
                                        'age' = c(rep(rep(c("age 0-17","age 18-49","age 50-64","age 65+"), each = length(ta.list)),3)))
      # Test.result.symptom.long = Test.result.symptom.long[Test.result.symptom.long$date %in% c(0.5, 0.6, 0.7, 0.8,0.9),]
       
-      Test.result.symptom.long$symptoms = factor(Test.result.symptom.long$symptoms, levels = c('severe', 'mild', 'asymptomatic'))
+      Test.result.symptom.long$symptoms = factor(Test.result.symptom.long$symptoms, levels = c('severe symptoms', 'mild symptoms', 'asymptomatic'))
       p3 = ggplot(data=Test.result.symptom.long,aes(x=factor(date),y=value,fill=age))+
         geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
         scale_y_continuous()+
@@ -540,8 +540,8 @@ server = function(input, output, session ) {
               legend.text=element_text(size=14), text = element_text(size=14))+
         theme(title=element_text(size=14,face="bold"), panel.grid.minor = element_blank(), panel.grid.major.x = element_blank(),
               panel.background = element_rect(fill = 'gray95', colour = 'white'))+
-        facet_grid(. ~ symptoms,shrink = TRUE, scales = "free", space = "free_x")#+
-        #theme(plot.margin=unit(c(40,5.5,5.5,5.5),"pt"))
+        facet_grid(. ~ symptoms,shrink = TRUE, scales = "free", space = "free_x")+
+        theme(strip.text.x = element_text(size = 14))
 
       LOWER = age_distribution(ta=0.55, ts = ((1-0.55)/4), D=true_cases, N=N)
       Test.age.long = rbind(data.frame(Symptoms = 'severe', 
@@ -554,9 +554,9 @@ server = function(input, output, session ) {
                                        Age = c("age 0-17","age 18-49","age 50-64","age 65+"),
                                        Proportions = LOWER$age_given_asymp))
       p4 = ggplot(data=Test.age.long,aes(x=factor(Symptoms),y=Proportions,fill=Age))+
-        geom_bar(stat="identity",position = 'stack', colour = 'gray30')+
+        geom_bar(stat="identity",position = 'stack', colour = 'gray30', width = 0.4)+
         scale_y_continuous()+
-        scale_x_discrete(breaks=c('asymptomatic', 'mild', 'severe'), labels = c('asymptomatic', 'mild', 'severe'))+
+        scale_x_discrete(breaks=c('asymptomatic', 'mild', 'severe'), labels = c('asymptomatic', 'mild symptoms', 'severe symptoms'))+
         ggtitle("Population age distribution by symptoms")+
         ylab("Proportion of people")+
         xlab("Symptoms")+
