@@ -1,3 +1,18 @@
+require(ggplot2)
+require(dplyr)
+require(shiny)
+require(readr)
+require(reshape2)
+require(gridExtra)
+require(optiSolve)
+
+library(ggplot2)
+library(dplyr)
+library(shiny)
+library(readr)
+library(reshape2)
+library(gridExtra)
+library(optiSolve)
 
 
 STARTING_WEIGHTS = matrix(c(0,1,0.3,0),nrow=1,ncol = 4)
@@ -119,25 +134,10 @@ ui<- shiny::fluidPage(
 source(file = 'www/find_t_f_V2_NY.R')
 source(file = 'www/each_generation_withZ_comb_V2.R')
 source(file = 'www/each_generation_withZ_comb_twoTests.R')
-library(ggplot2)
-library(plotly)
-library(dplyr)
-library(shiny)
 
 
 
-#library('extraDistr')
-#library('dplyr')
-#library('nleqslv')
-#library('optimx')
-#library('reshape2')
-#ibrary('scales')
-#library('ggthemes')
-#library('ggpubr')
-#library('gridExtra')
-#library('lpSolve')
-#library('scales')
-#library('NlcOptim')
+
 
 
 
