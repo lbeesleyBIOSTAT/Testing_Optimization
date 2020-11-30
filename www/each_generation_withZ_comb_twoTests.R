@@ -53,14 +53,14 @@ each_generation_withZ_twoTests = function(N,D,ta,ts,money,y1,y2,beta1,alpha1,bet
                fm_age1,fm_age2,fm_age3,fm_age4,
                fa_age1,fa_age2,fa_age3,fa_age4)
   if (any(t_f_prob <0) || any(t_f_prob>1)) warning(paste('When ta is',ta, ',','some tj(z) or fj(z) not between 0 and 1',sep = " "))
-  
-  
-  
-  ################################################
+
+  #number of positive tests if you tested everyone under test 1 or test 2
   N_sym1 = c((ts_age1*D+fs_age1*(N-D))*age1,(ts_age2*D+fs_age2*(N-D))*age2,(ts_age3*D+fs_age3*(N-D))*age3,(ts_age4*D+fs_age4*(N-D))*age4,
             (tm_age1*D+fm_age1*(N-D))*age1,(tm_age2*D+fm_age2*(N-D))*age2,(tm_age3*D+fm_age3*(N-D))*age3,(tm_age4*D+fm_age4*(N-D))*age4,
             (ta_age1*D+fa_age1*(N-D))*age1,(ta_age2*D+fa_age2*(N-D))*age2,(ta_age3*D+fa_age3*(N-D))*age3,(ta_age4*D+fa_age4*(N-D))*age4)
   N_sym2 = N_sym1
+  
+  #number of positive tests if you tested everyone under test 1 or test 2
   B1 = c(((1-beta1)*ts_age1*D+alpha1*fs_age1*(N-D))*age1,((1-beta1)*ts_age2*D+alpha1*fs_age2*(N-D))*age2,((1-beta1)*ts_age3*D+alpha1*fs_age3*(N-D))*age3,((1-beta1)*ts_age4*D+alpha1*fs_age4*(N-D))*age4,
         ((1-beta1)*tm_age1*D+alpha1*fm_age1*(N-D))*age1,((1-beta1)*tm_age2*D+alpha1*fm_age2*(N-D))*age2,((1-beta1)*tm_age3*D+alpha1*fm_age3*(N-D))*age3,((1-beta1)*tm_age4*D+alpha1*fm_age4*(N-D))*age4,
         ((1-beta1)*ta_age1*D+alpha1*fa_age1*(N-D))*age1,((1-beta1)*ta_age2*D+alpha1*fa_age2*(N-D))*age2,((1-beta1)*ta_age3*D+alpha1*fa_age3*(N-D))*age3,((1-beta1)*ta_age4*D+alpha1*fa_age4*(N-D))*age4)
@@ -72,7 +72,6 @@ each_generation_withZ_twoTests = function(N,D,ta,ts,money,y1,y2,beta1,alpha1,bet
   
   
   ######## use 'optiSolve' for optimization ######
-  
   B = c(B1,B2)
   N_sym = c(N_sym1,N_sym2)
   Q = B%*%t(B)
@@ -111,6 +110,7 @@ each_generation_withZ_twoTests = function(N,D,ta,ts,money,y1,y2,beta1,alpha1,bet
   const2.12_ = c(rep(0,11),N_sym1[12],rep(0,11),N_sym2[12]) # P(s=1|Sym=s)=1
   
   
+  
   A = matrix(c(const1,
                const2.1,const2.1_,
                const2.2,const2.2_,
@@ -125,6 +125,7 @@ each_generation_withZ_twoTests = function(N,D,ta,ts,money,y1,y2,beta1,alpha1,bet
                const2.11,const2.11_,
                const2.12,const2.12_),nrow=25,byrow = TRUE)
 
+  #A%*% optimal$x
   
   dir = c("<=",
           "<=",">=",
@@ -156,6 +157,8 @@ each_generation_withZ_twoTests = function(N,D,ta,ts,money,y1,y2,beta1,alpha1,bet
   colnames(A) = 1:ncol(A)
   rownames(A) = 1:nrow(A)
   lc = optiSolve::lincon(A=A,dir=dir,val=val,use=rep(TRUE,nrow(A)),id=colnames(A),name = 1:nrow(A))
+  
+
   
   # minimum number of tests
   lbval = c(rep(0,length(N_sym)))
@@ -197,6 +200,6 @@ each_generation_withZ_twoTests = function(N,D,ta,ts,money,y1,y2,beta1,alpha1,bet
               Total = sum(tests),
               P.hat = P.hat,
               prob = prob,
-              asignedTests=tests
+              assignedTests=tests
   ))
 }

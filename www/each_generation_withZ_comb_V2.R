@@ -1,6 +1,5 @@
 
 each_generation_withZ = function(N,D,ta,ts,Total,beta,alpha,c_pos,w){
-  N = N
   tf = find_t_f(ta=ta,ts=ts)
   
   ts = tf$ts
@@ -88,7 +87,7 @@ each_generation_withZ = function(N,D,ta,ts,Total,beta,alpha,c_pos,w){
   A = matrix(c(const1),nrow=1,byrow = TRUE)
   
   dir = c("<=")
-  val = c((Total-sum(N_sym[1:4]))/N+1e-8)
+  val = c((Total-sum(N_sym[1:4]))/N)#+1e-8)
   
   colnames(A) = 1:ncol(A)
   rownames(A) = 1:nrow(A)
@@ -159,7 +158,7 @@ each_generation_withZ = function(N,D,ta,ts,Total,beta,alpha,c_pos,w){
               Total = sum(tests),
               P.hat = P.hat,
               prob = prob,
-              asignedTests=tests,
+              assignedTests=tests,
               selectProb.s = selectProb.s,
               selectProb.m = selectProb.m,
               selectProb.a = selectProb.a,
